@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../components/top_main_menus.dart';
 import '../../../constants.dart';
 
 class Body extends StatelessWidget {
@@ -14,7 +13,6 @@ class Body extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
-          TopMainMenusWidget(),
           Container(
             alignment: Alignment.centerLeft,
             child: Padding(

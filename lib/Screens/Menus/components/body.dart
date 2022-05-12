@@ -54,7 +54,7 @@ class _BodyState extends State<Body> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          TopMainMenusWidget(),
+          TopMainMenusWidget(user: user),
           SizedBox(height: size.height * 0.04),
           Container(
             alignment: Alignment.centerLeft,
