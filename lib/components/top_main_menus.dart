@@ -4,13 +4,22 @@ import 'package:flutter/material.dart';
 import '../Screens/Welcome/welcome_screen.dart';
 
 class TopMainMenusWidget extends StatelessWidget {
+  final User? user;
+
   const TopMainMenusWidget({
     Key? key,
+    required this.user,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
+
+    ImageProvider photo = AssetImage("assets/images/default-user-image.png");
+
+    if (user != null && user?.photoURL != null) {
+      photo = NetworkImage(user!.photoURL!);
+    }
 
     return Row(
       children: [
@@ -19,7 +28,7 @@ class TopMainMenusWidget extends StatelessWidget {
           margin: EdgeInsets.symmetric(horizontal: 25, vertical: 20),
           padding: EdgeInsets.symmetric(horizontal: 0),
           child: CircleAvatar(
-            backgroundImage: AssetImage("assets/images/default-user-image.png"),
+            backgroundImage: photo,
             radius: 30,
           ),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../constants.dart';
 import 'components/body.dart';
 
 class AtlasScreen extends StatelessWidget {
@@ -8,6 +9,9 @@ class AtlasScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: kPrimaryColor,
+      ),
       body: Body(),
     );
   }
