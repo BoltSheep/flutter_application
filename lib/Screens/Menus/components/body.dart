@@ -1,12 +1,16 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_application/Screens/Atlas/atlas_screen.dart';
+import 'package:flutter_application/Screens/SendCapture/send_capture_screen.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/model/user_model.dart';
 import 'package:flutter_application/presentation/drawer_icon_icons.dart';
 import 'package:flutter_application/presentation/microscope_icon_icons.dart';
 import 'package:flutter_application/presentation/spreadsheet_icon_icons.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../components/top_main_menus.dart';
 import '../../Results/results_screen.dart';
@@ -25,6 +29,32 @@ class Body extends StatefulWidget {
 class _BodyState extends State<Body> {
   User? user = FirebaseAuth.instance.currentUser;
   UserModel loggedInUser = UserModel();
+  File? image;
+
+  Future pickImage() async {
+    try {
+      final image = await ImagePicker().pickImage(source: ImageSource.camera);
+      if (image == null) return;
+
+      final imageTemporary = File(image.path);
+      setState(() => this.image = imageTemporary);
+
+      if (this.image != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return SendCaptureScreen(
+                image: this.image!,
+              );
+            },
+          ),
+        );
+      }
+    } on PlatformException catch (e) {
+      print('Failed to pick image: $e');
+    }
+  }
 
   @override
   void initState() {
@@ -59,11 +89,11 @@ class _BodyState extends State<Body> {
           Container(
             alignment: Alignment.centerLeft,
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 25),
+              padding: const EdgeInsets.symmetric(horizontal: 25),
               child: Text(
-                'Olá, \n${name}!',
+                'Olá, \n$name!',
                 textAlign: TextAlign.left,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 30,
@@ -84,9 +114,11 @@ class _BodyState extends State<Body> {
                   fontSize: 15,
                   fontWeight: FontWeight.bold),
             ),
-            onPressed: () {},
-            icon: CustomIcons(icon: MicroscopeIcon.microscope),
-            label: Text(
+            onPressed: () {
+              pickImage();
+            },
+            icon: const CustomIcons(icon: MicroscopeIcon.microscope),
+            label: const Text(
               "Realizar Captura",
               style: TextStyle(color: Colors.white),
             ),
@@ -119,7 +151,7 @@ class _BodyState extends State<Body> {
                   );
                 },
                 child: Column(
-                  children: [
+                  children: const [
                     CustomIcons(icon: SpreadsheetIcon.spreadsheet),
                     Text(
                       "Resultados",
@@ -153,7 +185,7 @@ class _BodyState extends State<Body> {
                   );
                 },
                 child: Column(
-                  children: [
+                  children: const [
                     CustomIcons(icon: DrawerIcon.drawer),
                     Text(
                       "Atlas",

@@ -54,7 +54,7 @@ class _BodyState extends State<Body> {
               keyboardType: TextInputType.name,
               obscureText: false,
               validator: (value) {
-                RegExp regex = new RegExp(r'^.{3,}$');
+                RegExp regex = RegExp(r'^.{3,}$');
                 if (value!.isEmpty) {
                   return ("Nome não pode ser vazio");
                 }
@@ -87,7 +87,7 @@ class _BodyState extends State<Body> {
               keyboardType: TextInputType.text,
               obscureText: true,
               validator: (value) {
-                RegExp regex = new RegExp(r'^.{6,}$');
+                RegExp regex = RegExp(r'^.{6,}$');
                 if (value!.isEmpty) {
                   return ("A senha é obrigatória");
                 }
