@@ -172,7 +172,6 @@ class _BodyState extends State<Body> {
             }
           },
         ),
-        // Mock images
         StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('atlas')
