@@ -12,7 +12,7 @@ class AtlasScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: kPrimaryColor,
       ),
-      body: Body(),
+      body: const Body(),
     );
   }
 }

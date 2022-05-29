@@ -21,12 +21,12 @@ class RoundedPasswordField extends StatelessWidget {
         obscureText: true,
         onChanged: onChanged,
         decoration: InputDecoration(
-          hintText: "Password",
+          hintText: "Senha",
           icon: Icon(
             Icons.lock,
             color: kBlueColor,
           ),
-          suffixIcon: Icon(Icons.visibility),
+          suffixIcon: const Icon(Icons.visibility),
           border: InputBorder.none,
         ),
       ),

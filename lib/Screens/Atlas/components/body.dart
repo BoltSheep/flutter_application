@@ -49,7 +49,9 @@ class _BodyState extends State<Body> {
           ),
           Container(
             padding: EdgeInsets.symmetric(
-                horizontal: size.width * 0.08, vertical: size.height * 0.01),
+              horizontal: size.width * 0.08,
+              vertical: size.height * 0.01,
+            ),
             child: DropdownButtonFormField<String>(
               decoration: InputDecoration(
                 enabledBorder: OutlineInputBorder(
@@ -76,6 +78,7 @@ class _BodyState extends State<Body> {
               onChanged: (String? newValue) {
                 setState(() {
                   dropdownCategoriaValue = newValue!;
+                  dropdownCelulaValue = 'Célula';
                 });
               },
               items: categories.map<DropdownMenuItem<String>>((String value) {
@@ -102,8 +105,9 @@ class _BodyState extends State<Body> {
 
                 return Container(
                   padding: EdgeInsets.symmetric(
-                      horizontal: size.width * 0.08,
-                      vertical: size.height * 0.01),
+                    horizontal: size.width * 0.08,
+                    vertical: size.height * 0.01,
+                  ),
                   child: DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       enabledBorder: OutlineInputBorder(
@@ -132,6 +136,7 @@ class _BodyState extends State<Body> {
                       setState(() {
                         dropdownCelulaValue = newValue!;
                         if (newValue != "Célula") {
+                          Navigator.pop(context);
                           Navigator.push(
                             context,
                             MaterialPageRoute(

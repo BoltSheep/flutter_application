@@ -9,6 +9,7 @@ import 'package:flutter_application/Screens/Welcome/welcome_screen.dart';
 import 'package:flutter_application/constants.dart';
 import 'package:flutter_application/model/exame_images_model.dart';
 import 'package:flutter_application/model/exames_model.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../components/rounded_button.dart';
@@ -32,6 +33,9 @@ class _BodyState extends State<Body> {
     {'name': 'Em andamento'},
     {'name': 'Novo exame'},
   ];
+  final _formKey = GlobalKey<FormState>();
+  String? errorMessage;
+  bool firstPress = true;
 
   File? image;
   String dropdownExameValue = 'Exame';
@@ -137,9 +141,73 @@ class _BodyState extends State<Body> {
     return docExame;
   }
 
+  void enviarNovoExame() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        if (firstPress) {
+          firstPress = false;
+          final String url = await uploadImage(widget.image);
+          final title = tituloEditingController.text;
+          final description = descricaoEditingController.text;
+          User? user = FirebaseAuth.instance.currentUser;
+          String userUid = "";
+          if (user != null) {
+            userUid = user.uid;
+          } else {
+            Navigator.push(context, MaterialPageRoute(
+              builder: (context) {
+                return const WelcomeScreen();
+              },
+            ));
+          }
+
+          createExame(
+            title: title,
+            description: description,
+            url: url,
+            userUid: userUid,
+          );
+
+          pickImage();
+        }
+      } on FirebaseAuthException catch (error) {
+        switch (error.code) {
+          default:
+            errorMessage = "Um erro ainda indefinido aconteceu";
+        }
+        Fluttertoast.showToast(msg: errorMessage!);
+        print(error.code);
+      }
+    }
+  }
+
+  void enviarExame() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        if (firstPress) {
+          firstPress = false;
+          final String url = await uploadImage(widget.image);
+          final exameId = await getExameId(title: dropdownExameValue);
+
+          createExameImages(url: url, exameId: exameId);
+
+          pickImage();
+        }
+      } on FirebaseAuthException catch (error) {
+        switch (error.code) {
+          default:
+            errorMessage = "Um erro ainda indefinido aconteceu";
+        }
+        Fluttertoast.showToast(msg: errorMessage!);
+        print(error.code);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
+    List<String> exames = [];
 
     return SingleChildScrollView(
       child: Column(
@@ -226,167 +294,166 @@ class _BodyState extends State<Body> {
               ],
             ),
           ]),
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance.collection('exames').snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                exames = [];
+                for (int i = 0; i < snapshot.data!.docs.length; i++) {
+                  DocumentSnapshot snap = snapshot.data!.docs[i];
+                  exames.add(snap.get('title'));
+                }
+                return Container();
+              } else if (snapshot.hasError) {
+                return const Center(child: Text('Something went wrong'));
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
+            },
+          ),
           Wrap(
             children: availableTags.map((tag) {
               if (tag['name'] == 'Novo exame' && _value == tag['name']) {
-                return Column(
-                  children: [
-                    const RegisterLabels(label: 'Título:'),
-                    RegisterTextField(
-                      controller: tituloEditingController,
-                      keyboardType: TextInputType.text,
-                      obscureText: false,
-                      validator: (value) {
-                        RegExp regex = RegExp(r'^.{3,}$');
-                        if (value!.isEmpty) {
-                          return ("Titulo não pode ser vazio");
-                        }
-                        if (!regex.hasMatch(value)) {
-                          return ("Utilize um titulo válido(Min. 3 Caracteres)");
-                        }
-                        return null;
-                      },
-                    ),
-                    const RegisterLabels(label: 'Descrição:'),
-                    RegisterTextField(
-                      controller: descricaoEditingController,
-                      keyboardType: TextInputType.text,
-                      obscureText: false,
-                      validator: (value) {
-                        RegExp regex = RegExp(r'^.{3,}$');
-                        if (value!.isEmpty) {
-                          return ("Descrição não pode ser vazio");
-                        }
-                        if (!regex.hasMatch(value)) {
-                          return ("Utilize uma descrição válido(Min. 3 Caracteres)");
-                        }
-                        return null;
-                      },
-                    ),
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(vertical: size.height * 0.03),
-                      child: RoundedButton(
-                        text: "Enviar",
-                        color: kPrimaryColor,
-                        press: () async {
-                          final String url = await uploadImage(widget.image);
-                          final title = tituloEditingController.text;
-                          final description = descricaoEditingController.text;
-                          User? user = FirebaseAuth.instance.currentUser;
-                          String userUid = "";
-                          if (user != null) {
-                            userUid = user.uid;
-                          } else {
-                            Navigator.push(context, MaterialPageRoute(
-                              builder: (context) {
-                                return const WelcomeScreen();
-                              },
-                            ));
+                return Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      const RegisterLabels(label: 'Título:'),
+                      RegisterTextField(
+                        controller: tituloEditingController,
+                        keyboardType: TextInputType.text,
+                        obscureText: false,
+                        validator: (value) {
+                          RegExp regex = RegExp(r'^.{3,11}$');
+                          if (value!.isEmpty) {
+                            return ("Titulo não pode ser vazio");
                           }
-
-                          createExame(
-                              title: title,
-                              description: description,
-                              url: url,
-                              userUid: userUid);
-
-                          Navigator.popUntil(context, (route) => route.isFirst);
-                          pickImage();
+                          if ([...exames].any((element) => element == value)) {
+                            return ("Titulo já existe");
+                          }
+                          if (!regex.hasMatch(value)) {
+                            return ("Utilize um titulo válido(Min. 3 e Max. 11 Caracteres)");
+                          }
+                          return null;
                         },
                       ),
-                    ),
-                  ],
+                      const RegisterLabels(label: 'Descrição:'),
+                      RegisterTextField(
+                        controller: descricaoEditingController,
+                        keyboardType: TextInputType.text,
+                        obscureText: false,
+                        validator: (value) {
+                          RegExp regex = RegExp(r'^.{3,}$');
+                          if (value!.isEmpty) {
+                            return ("Descrição não pode ser vazio");
+                          }
+                          if (!regex.hasMatch(value)) {
+                            return ("Utilize uma descrição válido(Min. 3 Caracteres)");
+                          }
+                          return null;
+                        },
+                      ),
+                      Padding(
+                        padding:
+                            EdgeInsets.symmetric(vertical: size.height * 0.03),
+                        child: RoundedButton(
+                          text: "Enviar",
+                          color: kPrimaryColor,
+                          press: () async {
+                            enviarNovoExame();
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               }
 
               if (tag['name'] == 'Em andamento' && _value == tag['name']) {
-                return Column(
-                  children: [
-                    StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('exames')
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          List<String> exames = ['Exame'];
+                return Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('exames')
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            List<String> exames = ['Exame'];
 
-                          for (int i = 0; i < snapshot.data!.docs.length; i++) {
-                            DocumentSnapshot snap = snapshot.data!.docs[i];
-                            exames.add(snap.get('title'));
+                            for (int i = 0;
+                                i < snapshot.data!.docs.length;
+                                i++) {
+                              DocumentSnapshot snap = snapshot.data!.docs[i];
+                              exames.add(snap.get('title'));
+                            }
+
+                            return Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: size.width * 0.08,
+                                  vertical: size.height * 0.01),
+                              child: DropdownButtonFormField<String>(
+                                decoration: InputDecoration(
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide:
+                                        const BorderSide(color: kGreyColor),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  filled: true,
+                                  fillColor: kGreyColor,
+                                ),
+                                dropdownColor: kGreyColor,
+                                value: dropdownExameValue,
+                                icon: const Icon(
+                                  Icons.arrow_drop_down_circle,
+                                  color: kPrimaryColor,
+                                  size: 30,
+                                ),
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20,
+                                ),
+                                isExpanded: true,
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    dropdownExameValue = newValue!;
+                                  });
+                                },
+                                items: exames.map<DropdownMenuItem<String>>(
+                                    (String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
+                              ),
+                            );
+                          } else if (snapshot.hasError) {
+                            return const Center(
+                                child: Text('Something went wrong'));
+                          } else {
+                            return const Center(
+                                child: CircularProgressIndicator());
                           }
-
-                          return Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: size.width * 0.08,
-                                vertical: size.height * 0.01),
-                            child: DropdownButtonFormField<String>(
-                              decoration: InputDecoration(
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide:
-                                      const BorderSide(color: kGreyColor),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                filled: true,
-                                fillColor: kGreyColor,
-                              ),
-                              dropdownColor: kGreyColor,
-                              value: dropdownExameValue,
-                              icon: const Icon(
-                                Icons.arrow_drop_down_circle,
-                                color: kPrimaryColor,
-                                size: 30,
-                              ),
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 20,
-                              ),
-                              isExpanded: true,
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  dropdownExameValue = newValue!;
-                                });
-                              },
-                              items: exames.map<DropdownMenuItem<String>>(
-                                  (String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                            ),
-                          );
-                        } else if (snapshot.hasError) {
-                          return const Center(
-                              child: Text('Something went wrong'));
-                        } else {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        }
-                      },
-                    ),
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(vertical: size.height * 0.03),
-                      child: RoundedButton(
-                        text: "Enviar",
-                        color: kPrimaryColor,
-                        press: () async {
-                          final String url = await uploadImage(widget.image);
-                          final exameId =
-                              await getExameId(title: dropdownExameValue);
-
-                          createExameImages(url: url, exameId: exameId);
-
-                          Navigator.popUntil(context, (route) => route.isFirst);
-                          pickImage();
                         },
                       ),
-                    ),
-                  ],
+                      Padding(
+                        padding:
+                            EdgeInsets.symmetric(vertical: size.height * 0.03),
+                        child: RoundedButton(
+                          text: "Enviar",
+                          color: kPrimaryColor,
+                          press: () async {
+                            enviarExame();
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               }
 

@@ -91,6 +91,9 @@ class Body extends StatelessWidget {
                       height: size.height * 0.05,
                       child: Row(
                         children: [
+                          Padding(
+                            padding: EdgeInsets.only(left: size.width * 0.05),
+                          ),
                           GestureDetector(
                             onTap: () {
                               Navigator.push(
@@ -98,9 +101,10 @@ class Body extends StatelessWidget {
                                 MaterialPageRoute(
                                   builder: (context) {
                                     return ResultsDetailsScreen(
-                                        title: exame['title'],
-                                        description: exame['description'],
-                                        exameId: exame['id']);
+                                      title: exame['title'],
+                                      description: exame['description'],
+                                      exameId: exame['id'],
+                                    );
                                   },
                                 ),
                               );
@@ -114,7 +118,7 @@ class Body extends StatelessWidget {
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.only(left: size.width * 0.37),
+                            padding: EdgeInsets.only(left: size.width * 0.30),
                             child: Text(
                               getDate(exame['createdAt']),
                               textAlign: TextAlign.left,

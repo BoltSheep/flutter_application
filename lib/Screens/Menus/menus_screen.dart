@@ -9,10 +9,11 @@ class MenusScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Container(alignment: Alignment.center, child: Text('Cell-AI')),
+        title: Container(
+            alignment: Alignment.center, child: const Text('Cell-IA')),
         backgroundColor: kPrimaryColor,
       ),
-      body: Body(),
+      body: const Body(),
     );
   }
 }
