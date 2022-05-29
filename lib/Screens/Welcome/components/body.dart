@@ -53,7 +53,7 @@ class _BodyState extends State<Body> {
           children: <Widget>[
             SizedBox(height: size.height * 0.5),
             RoundedInputField(
-              hintText: "email",
+              hintText: "Email",
               onChanged: (value) {},
               controller: _emailController,
             ),
@@ -72,7 +72,7 @@ class _BodyState extends State<Body> {
                     context: context);
                 if (user != null) {
                   Navigator.of(context).pushReplacement(MaterialPageRoute(
-                    builder: (context) => MenusScreen(),
+                    builder: (context) => const MenusScreen(),
                   ));
                 }
               },
@@ -91,8 +91,8 @@ class _BodyState extends State<Body> {
                     Provider.of<GoogleSignInProvider>(context, listen: false);
                 provider.googleLogin();
               },
-              icon: FaIcon(FontAwesomeIcons.google, color: kPrimaryColor),
-              label: Text('Faça login com Google',
+              icon: const FaIcon(FontAwesomeIcons.google, color: kPrimaryColor),
+              label: const Text('Faça login com Google',
                   style: TextStyle(
                       color: Colors.black,
                       fontSize: 15,

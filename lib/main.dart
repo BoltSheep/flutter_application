@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
         create: (context) => GoogleSignInProvider(),
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'Flutter App',
+          title: 'Cell-IA',
           theme: ThemeData(
             primaryColor: kPrimaryColor,
             scaffoldBackgroundColor: Colors.white,

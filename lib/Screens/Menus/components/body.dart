@@ -85,11 +85,11 @@ class _BodyState extends State<Body> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           TopMainMenusWidget(user: user),
-          SizedBox(height: size.height * 0.04),
+          SizedBox(height: size.height * 0.02),
           Container(
             alignment: Alignment.centerLeft,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25),
+              padding: EdgeInsets.symmetric(horizontal: size.width * 0.1),
               child: Text(
                 'Olá, \n$name!',
                 textAlign: TextAlign.left,
@@ -101,17 +101,18 @@ class _BodyState extends State<Body> {
               ),
             ),
           ),
-          SizedBox(height: size.height * 0.06),
+          SizedBox(height: size.height * 0.05),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
               primary: kLightGreyColor,
-              padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 40),
+              padding: EdgeInsets.symmetric(
+                  horizontal: size.width * 0.16, vertical: size.height * 0.04),
               textStyle: const TextStyle(
                   color: Colors.black,
-                  fontSize: 15,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold),
             ),
             onPressed: () {
@@ -123,7 +124,7 @@ class _BodyState extends State<Body> {
               style: TextStyle(color: Colors.white),
             ),
           ),
-          SizedBox(height: size.height * 0.06),
+          SizedBox(height: size.height * 0.05),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -133,27 +134,31 @@ class _BodyState extends State<Body> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                   primary: kPrimaryColor,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 38, vertical: 80),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: size.width * 0.07,
+                    vertical: size.height * 0.09,
+                  ),
                   textStyle: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold),
+                    color: Colors.black,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) {
-                        return ResultsScreen();
+                        return const ResultsScreen();
                       },
                     ),
                   );
                 },
                 child: Column(
-                  children: const [
-                    CustomIcons(icon: SpreadsheetIcon.spreadsheet),
-                    Text(
+                  children: [
+                    const CustomIcons(icon: SpreadsheetIcon.spreadsheet),
+                    SizedBox(height: size.height * 0.02),
+                    const Text(
                       "Resultados",
                       style: TextStyle(color: Colors.white),
                     ),
@@ -167,11 +172,13 @@ class _BodyState extends State<Body> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                   primary: kRedLightColor,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 50, vertical: 80),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: size.width * 0.13,
+                    vertical: size.height * 0.09,
+                  ),
                   textStyle: const TextStyle(
                       color: Colors.black,
-                      fontSize: 15,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold),
                 ),
                 onPressed: () {
@@ -179,15 +186,16 @@ class _BodyState extends State<Body> {
                     context,
                     MaterialPageRoute(
                       builder: (context) {
-                        return AtlasScreen();
+                        return const AtlasScreen();
                       },
                     ),
                   );
                 },
                 child: Column(
-                  children: const [
-                    CustomIcons(icon: DrawerIcon.drawer),
-                    Text(
+                  children: [
+                    const CustomIcons(icon: DrawerIcon.drawer),
+                    SizedBox(height: size.height * 0.02),
+                    const Text(
                       "Atlas",
                       style: TextStyle(color: Colors.white),
                     ),
