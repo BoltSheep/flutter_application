@@ -184,7 +184,7 @@ class _BodyState extends State<Body> {
   void enviarExame() async {
     if (_formKey.currentState!.validate()) {
       try {
-        if (firstPress) {
+        if (firstPress && dropdownExameValue != 'Exame') {
           firstPress = false;
           final String url = await uploadImage(widget.image);
           final exameId = await getExameId(title: dropdownExameValue);
