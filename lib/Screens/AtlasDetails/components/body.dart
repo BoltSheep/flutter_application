@@ -37,6 +37,8 @@ class _BodyState extends State<Body> {
 
   AtlasModel atlasModel = AtlasModel();
 
+  String abreviatura = '';
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -194,7 +196,7 @@ class _BodyState extends State<Body> {
                 .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                List<AtlasModel> atlas = [];
+                List<Map<String, dynamic>> atlas = [];
 
                 for (int i = 0; i < snapshot.data!.docs.length; i++) {
                   DocumentSnapshot snap = snapshot.data!.docs[i];
@@ -203,7 +205,11 @@ class _BodyState extends State<Body> {
                   atlasModel.celula = snap.get('celula');
                   atlasModel.imagem = snap.get('imagem');
 
-                  atlas.add(atlasModel);
+                  atlas.add(atlasModel.toMap());
+                }
+
+                if (atlas.isNotEmpty) {
+                  abreviatura = atlas[0]['abreviatura'];
                 }
 
                 return Column(
@@ -213,7 +219,7 @@ class _BodyState extends State<Body> {
                         vertical: size.height * 0.02,
                       ),
                       child: Text(
-                        'Abreviatura: ${atlas[0].abreviatura}',
+                        'Abreviatura: $abreviatura',
                         textAlign: TextAlign.left,
                         style: const TextStyle(
                           color: Colors.black,
@@ -223,22 +229,24 @@ class _BodyState extends State<Body> {
                       ),
                     ),
                     SizedBox(
-                      height: 500,
+                      height: size.height,
                       child: ListView.builder(
-                          scrollDirection: Axis.vertical,
-                          itemCount: atlas.length,
-                          itemBuilder: (context, index) {
-                            return InteractiveViewer(
-                              child: AspectRatio(
-                                aspectRatio: 1,
-                                child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: Image.network(
-                                      atlas[index].imagem!,
-                                    )),
+                        scrollDirection: Axis.vertical,
+                        itemCount: atlas.length,
+                        itemBuilder: (context, index) {
+                          return InteractiveViewer(
+                            child: AspectRatio(
+                              aspectRatio: 1,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Image.network(
+                                  atlas[index]['imagem']!,
+                                ),
                               ),
-                            );
-                          }),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ],
                 );

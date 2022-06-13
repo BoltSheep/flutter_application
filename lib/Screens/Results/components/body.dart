@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application/constants.dart';
 import 'package:intl/intl.dart';
 
+import '../../../constants.dart';
 import '../../ResultsDetails/results_details_screen.dart';
 
 class Body extends StatelessWidget {
@@ -16,7 +17,7 @@ class Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
+    User? user = FirebaseAuth.instance.currentUser;
 
     return SingleChildScrollView(
       child: Column(
@@ -36,39 +37,11 @@ class Body extends StatelessWidget {
               ),
             ),
           ),
-          Container(
-            color: kBlueLightColor,
-            width: size.width * 0.85,
-            height: size.height * 0.05,
-            child: Row(
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(left: size.width * 0.05),
-                  child: const Text(
-                    'Exame',
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 20,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(left: size.width * 0.37),
-                  child: const Text(
-                    'Data',
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 20,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
           StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('exames').snapshots(),
+            stream: FirebaseFirestore.instance
+                .collection('exames')
+                .where('userUid', isEqualTo: user!.uid)
+                .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 List<Map> exames = [];
@@ -83,55 +56,69 @@ class Body extends StatelessWidget {
                   });
                 }
 
-                return Wrap(
-                  children: exames.map((exame) {
-                    return Container(
-                      color: kGreyColor,
-                      width: size.width * 0.85,
-                      height: size.height * 0.05,
-                      child: Row(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(left: size.width * 0.05),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return ResultsDetailsScreen(
-                                      title: exame['title'],
-                                      description: exame['description'],
-                                      exameId: exame['id'],
-                                    );
-                                  },
-                                ),
-                              );
-                            },
-                            child: Text(
-                              exame['title'],
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 20,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(left: size.width * 0.30),
-                            child: Text(
-                              getDate(exame['createdAt']),
-                              textAlign: TextAlign.left,
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 20,
-                              ),
-                            ),
-                          ),
-                        ],
+                return DataTable(
+                  columns: const [
+                    DataColumn(
+                      label: Text(
+                        'Exame',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 20,
+                        ),
                       ),
-                    );
-                  }).toList(),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Data',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                  rows: exames
+                      .map(
+                        ((exame) => DataRow(
+                              cells: <DataCell>[
+                                DataCell(
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) {
+                                            return ResultsDetailsScreen(
+                                              title: exame['title'],
+                                              description: exame['description'],
+                                              exameId: exame['id'],
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      exame['title'],
+                                      style: const TextStyle(
+                                        color: kBlueColor,
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                DataCell(
+                                  Text(
+                                    getDate(exame['createdAt']),
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )),
+                      )
+                      .toList(),
                 );
               } else if (snapshot.hasError) {
                 return const Center(child: Text('Something went wrong'));

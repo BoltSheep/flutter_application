@@ -41,6 +41,8 @@ class _BodyState extends State<Body> {
   String dropdownExameValue = 'Exame';
   Object? _value = false;
 
+  User? user = FirebaseAuth.instance.currentUser;
+
   Future<String> upload(String path) async {
     File file = File(path);
     try {
@@ -377,6 +379,7 @@ class _BodyState extends State<Body> {
                       StreamBuilder<QuerySnapshot>(
                         stream: FirebaseFirestore.instance
                             .collection('exames')
+                            .where('userUid', isEqualTo: user!.uid)
                             .snapshots(),
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {

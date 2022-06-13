@@ -19,7 +19,7 @@ class Body extends StatefulWidget {
   final String name;
   const Body({
     Key? key,
-    this.name = 'Emanuelle',
+    this.name = 'Usuário',
   }) : super(key: key);
 
   @override
