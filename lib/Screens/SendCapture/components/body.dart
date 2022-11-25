@@ -12,9 +12,17 @@ import 'package:flutter_application/model/exames_model.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 import '../../../components/rounded_button.dart';
 import '../../Register/components/body.dart';
 import '../send_capture_screen.dart';
+
+import 'package:logger/logger.dart';
+
+var logger = Logger();
+var log = 'nada';
 
 class Body extends StatefulWidget {
   final File image;
@@ -41,6 +49,7 @@ class _BodyState extends State<Body> {
   String dropdownExameValue = 'Exame';
   Object? _value = false;
 
+
   User? user = FirebaseAuth.instance.currentUser;
 
   Future<String> upload(String path) async {
@@ -65,7 +74,8 @@ class _BodyState extends State<Body> {
     try {
       final image = await ImagePicker().pickImage(source: ImageSource.camera);
       if (image == null) return;
-
+      log = image.path;
+      
       final imageTemporary = File(image.path);
       setState(() => this.image = imageTemporary);
 
@@ -206,6 +216,8 @@ class _BodyState extends State<Body> {
     }
   }
 
+  void enviarExame() async
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -250,19 +262,10 @@ class _BodyState extends State<Body> {
             Row(
               children: [
                 Padding(
-                  padding: EdgeInsets.only(left: size.width * 0.08),
-                  child: Radio(
-                    value: 'Em andamento',
-                    groupValue: _value,
-                    onChanged: (value) {
-                      setState(() {
-                        _value = value!;
-                      });
-                    },
-                  ),
+                  padding: EdgeInsets.only(left: size.width * 0.09)
                 ),
                 const Text(
-                  'Em andamento',
+                  'Exame',
                   style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
@@ -270,31 +273,7 @@ class _BodyState extends State<Body> {
                   ),
                 ),
               ],
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(left: size.width * 0.08),
-                  child: Radio(
-                    value: 'Novo exame',
-                    groupValue: _value,
-                    onChanged: (value) {
-                      setState(() {
-                        _value = value;
-                      });
-                    },
-                  ),
-                ),
-                const Text(
-                  'Novo exame',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-              ],
-            ),
+            )
           ]),
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance.collection('exames').snapshots(),
@@ -313,155 +292,59 @@ class _BodyState extends State<Body> {
               }
             },
           ),
-          Wrap(
-            children: availableTags.map((tag) {
-              if (tag['name'] == 'Novo exame' && _value == tag['name']) {
-                return Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      const RegisterLabels(label: 'Título:'),
-                      RegisterTextField(
-                        controller: tituloEditingController,
-                        keyboardType: TextInputType.text,
-                        obscureText: false,
-                        validator: (value) {
-                          RegExp regex = RegExp(r'^.{3,11}$');
-                          if (value!.isEmpty) {
-                            return ("Titulo não pode ser vazio");
-                          }
-                          if ([...exames].any((element) => element == value)) {
-                            return ("Titulo já existe");
-                          }
-                          if (!regex.hasMatch(value)) {
-                            return ("Utilize um titulo válido(Min. 3 e Max. 11 Caracteres)");
-                          }
-                          return null;
-                        },
-                      ),
-                      const RegisterLabels(label: 'Descrição:'),
-                      RegisterTextField(
-                        controller: descricaoEditingController,
-                        keyboardType: TextInputType.text,
-                        obscureText: false,
-                        validator: (value) {
-                          RegExp regex = RegExp(r'^.{3,}$');
-                          if (value!.isEmpty) {
-                            return ("Descrição não pode ser vazio");
-                          }
-                          if (!regex.hasMatch(value)) {
-                            return ("Utilize uma descrição válido(Min. 3 Caracteres)");
-                          }
-                          return null;
-                        },
-                      ),
-                      Padding(
-                        padding:
-                            EdgeInsets.symmetric(vertical: size.height * 0.03),
-                        child: RoundedButton(
-                          text: "Enviar",
-                          color: kPrimaryColor,
-                          press: () async {
-                            enviarNovoExame();
-                          },
-                        ),
-                      ),
-                    ],
+          Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                const RegisterLabels(label: 'Título:'),
+                RegisterTextField(
+                  controller: tituloEditingController,
+                  keyboardType: TextInputType.text,
+                  obscureText: false,
+                  validator: (value) {
+                    RegExp regex = RegExp(r'^.{3,11}$');
+                    if (value!.isEmpty) {
+                      return ("Titulo não pode ser vazio");
+                    }
+                    if ([...exames].any((element) => element == value)) {
+                      return ("Titulo já existe");
+                    }
+                    if (!regex.hasMatch(value)) {
+                      return ("Utilize um titulo válido(Min. 3 e Max. 11 Caracteres)");
+                    }
+                    return null;
+                  },
+                ),
+                const RegisterLabels(label: 'Descrição:'),
+                RegisterTextField(
+                  controller: descricaoEditingController,
+                  keyboardType: TextInputType.text,
+                  obscureText: false,
+                  validator: (value) {
+                    RegExp regex = RegExp(r'^.{3,}$');
+                    if (value!.isEmpty) {
+                      return ("Descrição não pode ser vazio");
+                    }
+                    if (!regex.hasMatch(value)) {
+                      return ("Utilize uma descrição válido(Min. 3 Caracteres)");
+                    }
+                    return null;
+                  },
+                ),
+                Padding(
+                  padding:
+                      EdgeInsets.symmetric(vertical: size.height * 0.03),
+                  child: RoundedButton(
+                    text: "Enviar",
+                    color: kPrimaryColor,
+                    press: () async {
+                      logger.d('Miojo: $log');
+                      //enviarNovoExame();
+                    },
                   ),
-                );
-              }
-
-              if (tag['name'] == 'Em andamento' && _value == tag['name']) {
-                return Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      StreamBuilder<QuerySnapshot>(
-                        stream: FirebaseFirestore.instance
-                            .collection('exames')
-                            .where('userUid', isEqualTo: user!.uid)
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            List<String> exames = ['Exame'];
-
-                            for (int i = 0;
-                                i < snapshot.data!.docs.length;
-                                i++) {
-                              DocumentSnapshot snap = snapshot.data!.docs[i];
-                              exames.add(snap.get('title'));
-                            }
-
-                            return Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: size.width * 0.08,
-                                  vertical: size.height * 0.01),
-                              child: DropdownButtonFormField<String>(
-                                decoration: InputDecoration(
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide:
-                                        const BorderSide(color: kGreyColor),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  filled: true,
-                                  fillColor: kGreyColor,
-                                ),
-                                dropdownColor: kGreyColor,
-                                value: dropdownExameValue,
-                                icon: const Icon(
-                                  Icons.arrow_drop_down_circle,
-                                  color: kPrimaryColor,
-                                  size: 30,
-                                ),
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 20,
-                                ),
-                                isExpanded: true,
-                                onChanged: (String? newValue) {
-                                  setState(() {
-                                    dropdownExameValue = newValue!;
-                                  });
-                                },
-                                items: exames.map<DropdownMenuItem<String>>(
-                                    (String value) {
-                                  return DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Text(value),
-                                  );
-                                }).toList(),
-                              ),
-                            );
-                          } else if (snapshot.hasError) {
-                            return const Center(
-                                child: Text('Something went wrong'));
-                          } else {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          }
-                        },
-                      ),
-                      Padding(
-                        padding:
-                            EdgeInsets.symmetric(vertical: size.height * 0.03),
-                        child: RoundedButton(
-                          text: "Enviar",
-                          color: kPrimaryColor,
-                          press: () async {
-                            enviarExame();
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              return Container();
-            }).toList(),
+                ),
+              ],
+            ),
           ),
         ],
       ),

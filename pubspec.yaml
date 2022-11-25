@@ -50,6 +50,12 @@ dependencies:
   flutter_native_splash: ^2.2.1
   flutter_launcher_icons: ^0.9.2
   xml: ^6.1.0
+  http: ^0.13.0
+  loading: ^1.0.2
+  mime: ^0.9.6+3
+  progress_dialog_null_safe: 1.0.7
+  logger: ^1.1.0
+  shared_preferences: ^2.0.15
   
 
 flutter_native_splash:

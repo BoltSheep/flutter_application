@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +11,10 @@ import '../../../constants.dart';
 import '../../../model/user_model.dart';
 import '../../Welcome/welcome_screen.dart';
 
+import 'package:http/http.dart' as http;
+import 'package:logger/logger.dart';
+var logger = Logger();
+
 class Body extends StatefulWidget {
   const Body({Key? key}) : super(key: key);
 
@@ -15,8 +22,12 @@ class Body extends StatefulWidget {
   State<Body> createState() => _BodyState();
 }
 
+var url = Uri.https('api.cellcount.online', '/api/user');
+
+
 class _BodyState extends State<Body> {
   final _auth = FirebaseAuth.instance;
+
   String? errorMessage;
   final _formKey = GlobalKey<FormState>();
   final nameEditingController = TextEditingController();
@@ -25,6 +36,21 @@ class _BodyState extends State<Body> {
   final confirmPasswordEditingController = TextEditingController();
   bool isCheckedProfessor = false;
   bool isCheckedAluno = false;
+
+  String professor = 'Professor role';
+  String professorDescription = 'Role with professor privileges';
+
+  String student = 'Student role';
+  String studentDescription = 'Role with student privileges';
+
+  Future<String> test() async {
+    var response = await http.get(url);
+
+    logger.e('Response status: ${response.statusCode}');
+    logger.d('Response body: ${response.body}');
+
+    return "done";
+}
 
   @override
   Widget build(BuildContext context) {
@@ -158,8 +184,11 @@ class _BodyState extends State<Body> {
             RoundedButton(
               text: "Cadastrar",
               press: () {
-                signUp(emailEditingController.text,
-                    passwordEditingController.text);
+                signUpToAPI(
+                    emailEditingController.text,
+                    nameEditingController.text,
+                    passwordEditingController.text
+                );
               },
             ),
           ],
@@ -212,6 +241,52 @@ class _BodyState extends State<Body> {
         print(error.code);
       }
     }
+  }
+
+  void signUpToAPI(String email, String nome, String password) async {
+
+    if (_formKey.currentState!.validate()) {
+      try {
+        if (!isCheckedAluno && !isCheckedProfessor) {
+          Fluttertoast.showToast(msg: "Selecione um tipo de usuário");
+          return;
+        }
+
+        var registerResponse = await http.post( Uri.parse('https://api.cellcount.online/api/user'),
+            headers: <String, String>{
+              'Content-Type': 'application/json; charset=UTF-8',
+            },
+            body: jsonEncode(<String, dynamic>{
+              "email": email,
+              "name": nome,
+              "password": password,
+              "roles": [
+                {
+                  "id": 2,
+                  "value": isCheckedAluno ? student : professor,
+                  "description": isCheckedAluno ? student : professor,
+                  "active": true
+                }
+              ]
+            })
+        );
+
+        if (registerResponse.statusCode == 201) {
+          Fluttertoast.showToast(msg: "Conta Cadastrada Na API");
+
+          signUp(email, password);
+        } else {
+          var decodedResponse = MessageError.fromJson(jsonDecode(registerResponse.body)) ;
+
+          Fluttertoast.showToast(msg: decodedResponse.data?.message ?? "");
+          logger.i(decodedResponse.data?.message ?? "");
+
+        }
+      } catch (error) {
+          Fluttertoast.showToast(msg: "Erro Inesperado: " +error.toString());
+          logger.i("Miojo Erro Inesperado: " + error.toString());
+        }
+      }
   }
 
   postDetailsToFirestore() async {
@@ -268,6 +343,51 @@ class RegisterLabels extends StatelessWidget {
     );
   }
 }
+
+
+class MessageError {
+  int? statusCode;
+  String? message;
+  Data? data;
+  String? time;
+
+  MessageError({this.statusCode, this.message, this.data, this.time});
+
+  MessageError.fromJson(Map<String, dynamic> json) {
+    statusCode = json['statusCode'];
+    message = json['message'];
+    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    time = json['time'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['statusCode'] = this.statusCode;
+    data['message'] = this.message;
+    if (this.data != null) {
+      data['data'] = this.data!.toJson();
+    }
+    data['time'] = this.time;
+    return data;
+  }
+}
+
+class Data {
+  String? message;
+
+  Data({this.message});
+
+  Data.fromJson(Map<String, dynamic> json) {
+    message = json['message'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['message'] = this.message;
+    return data;
+  }
+}
+
 
 class RegisterTextField extends StatelessWidget {
   final TextEditingController controller;
